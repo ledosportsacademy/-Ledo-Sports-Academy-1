@@ -16,10 +16,9 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files
 app.use(express.static(path.join(__dirname, '/')));
 
-// Ensure all routes serve the index.html file for client-side routing
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+// API Routes - Define these before the catch-all route
+
+// Define API routes here (they will be moved below)
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
@@ -104,6 +103,8 @@ const Expense = mongoose.model('Expense', expenseSchema);
 const Experience = mongoose.model('Experience', experienceSchema);
 const WeeklyFee = mongoose.model('WeeklyFee', weeklyFeeSchema);
 
+
+
 // API Routes
 
 // Get all hero slides
@@ -116,11 +117,77 @@ app.get('/api/hero-slides', async (req, res) => {
   }
 });
 
+// Create a new hero slide
+app.post('/api/hero-slides', async (req, res) => {
+  const slide = new HeroSlide(req.body);
+  try {
+    const newSlide = await slide.save();
+    res.status(201).json(newSlide);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Update a hero slide
+app.put('/api/hero-slides/:id', async (req, res) => {
+  try {
+    const slide = await HeroSlide.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!slide) return res.status(404).json({ message: 'Slide not found' });
+    res.json(slide);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Delete a hero slide
+app.delete('/api/hero-slides/:id', async (req, res) => {
+  try {
+    const slide = await HeroSlide.findByIdAndDelete(req.params.id);
+    if (!slide) return res.status(404).json({ message: 'Slide not found' });
+    res.json({ message: 'Slide deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Get all activities
 app.get('/api/activities', async (req, res) => {
   try {
     const activities = await Activity.find();
     res.json(activities);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Create a new activity
+app.post('/api/activities', async (req, res) => {
+  const activity = new Activity(req.body);
+  try {
+    const newActivity = await activity.save();
+    res.status(201).json(newActivity);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Update an activity
+app.put('/api/activities/:id', async (req, res) => {
+  try {
+    const activity = await Activity.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!activity) return res.status(404).json({ message: 'Activity not found' });
+    res.json(activity);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Delete an activity
+app.delete('/api/activities/:id', async (req, res) => {
+  try {
+    const activity = await Activity.findByIdAndDelete(req.params.id);
+    if (!activity) return res.status(404).json({ message: 'Activity not found' });
+    res.json({ message: 'Activity deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -176,76 +243,19 @@ app.get('/api/weekly-fees', async (req, res) => {
   }
 });
 
-// Create routes for POST, PUT, DELETE operations
-
-// Create a new hero slide
-app.post('/api/hero-slides', async (req, res) => {
-  const slide = new HeroSlide(req.body);
-  try {
-    const newSlide = await slide.save();
-    res.status(201).json(newSlide);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-
-// Update a hero slide
-app.put('/api/hero-slides/:id', async (req, res) => {
-  try {
-    const slide = await HeroSlide.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!slide) return res.status(404).json({ message: 'Slide not found' });
-    res.json(slide);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-
-// Delete a hero slide
-app.delete('/api/hero-slides/:id', async (req, res) => {
-  try {
-    const slide = await HeroSlide.findByIdAndDelete(req.params.id);
-    if (!slide) return res.status(404).json({ message: 'Slide not found' });
-    res.json({ message: 'Slide deleted' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Similar CRUD operations for other models
-// Activities
-app.post('/api/activities', async (req, res) => {
-  const activity = new Activity(req.body);
-  try {
-    const newActivity = await activity.save();
-    res.status(201).json(newActivity);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-
-app.put('/api/activities/:id', async (req, res) => {
-  try {
-    const activity = await Activity.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!activity) return res.status(404).json({ message: 'Activity not found' });
-    res.json(activity);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-
-app.delete('/api/activities/:id', async (req, res) => {
-  try {
-    const activity = await Activity.findByIdAndDelete(req.params.id);
-    if (!activity) return res.status(404).json({ message: 'Activity not found' });
-    res.json({ message: 'Activity deleted' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Serve the main HTML file
+// Serve static files for the main application
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Catch-all route to serve the main HTML file for client-side routing
+app.get('*', (req, res) => {
+  // Exclude API routes from this catch-all
+  if (!req.path.startsWith('/api/')) {
+    res.sendFile(path.join(__dirname, 'index.html'));
+  } else {
+    res.status(404).json({ message: 'API endpoint not found' });
+  }
 });
 
 // Start the server

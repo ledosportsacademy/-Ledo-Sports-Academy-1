@@ -175,18 +175,64 @@ async function deleteActivity(activityId) {
 
 // Function to save a member
 async function saveMember(member) {
-  // Similar implementation as saveHeroSlide and saveActivity
-  // This is a placeholder for the actual implementation
-  console.log('Save member functionality to be implemented');
-  return member;
+  try {
+    const method = member._id ? 'PUT' : 'POST';
+    const url = member._id ? `/api/members/${member._id}` : '/api/members';
+    
+    const response = await fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(member)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save member');
+    }
+
+    const savedMember = await response.json();
+    
+    // Update local data
+    if (method === 'POST') {
+      appData.members.push(savedMember);
+    } else {
+      const index = appData.members.findIndex(m => m._id === savedMember._id);
+      if (index !== -1) {
+        appData.members[index] = savedMember;
+      }
+    }
+
+    renderMembers();
+    return savedMember;
+  } catch (error) {
+    console.error('Error saving member:', error);
+    showMessage('Failed to save member', 'error');
+    throw error;
+  }
 }
 
 // Function to delete a member
 async function deleteMember(memberId) {
-  // Similar implementation as deleteHeroSlide and deleteActivity
-  // This is a placeholder for the actual implementation
-  console.log('Delete member functionality to be implemented');
-  return true;
+  try {
+    const response = await fetch(`/api/members/${memberId}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete member');
+    }
+
+    // Update local data
+    appData.members = appData.members.filter(member => member._id !== memberId);
+    
+    renderMembers();
+    return true;
+  } catch (error) {
+    console.error('Error deleting member:', error);
+    showMessage('Failed to delete member', 'error');
+    throw error;
+  }
 }
 
 // Function to save a donation
@@ -215,10 +261,106 @@ async function saveExperience(experience) {
 
 // Function to save a weekly fee
 async function saveWeeklyFee(fee) {
-  // Similar implementation as other save functions
-  // This is a placeholder for the actual implementation
-  console.log('Save weekly fee functionality to be implemented');
-  return fee;
+  try {
+    const method = fee._id ? 'PUT' : 'POST';
+    const url = fee._id ? `/api/weekly-fees/${fee._id}` : '/api/weekly-fees';
+    
+    const response = await fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(fee)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save weekly fee');
+    }
+
+    const savedFee = await response.json();
+    
+    // Update local data
+    if (method === 'POST') {
+      appData.weeklyFees.push(savedFee);
+    } else {
+      const index = appData.weeklyFees.findIndex(f => f._id === savedFee._id);
+      if (index !== -1) {
+        appData.weeklyFees[index] = savedFee;
+      }
+    }
+
+    renderWeeklyFees();
+    return savedFee;
+  } catch (error) {
+    console.error('Error saving weekly fee:', error);
+    showMessage('Failed to save weekly fee', 'error');
+    throw error;
+  }
+}
+
+// Function to delete a weekly fee
+async function deleteWeeklyFee(feeId) {
+  try {
+    const response = await fetch(`/api/weekly-fees/${feeId}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete weekly fee');
+    }
+
+    // Update local data
+    appData.weeklyFees = appData.weeklyFees.filter(fee => fee._id !== feeId);
+    
+    renderWeeklyFees();
+    return true;
+  } catch (error) {
+    console.error('Error deleting weekly fee:', error);
+    showMessage('Failed to delete weekly fee', 'error');
+    throw error;
+  }
+}
+
+// Function to update weekly fee status
+async function updateWeeklyFeeStatus(feeId, status) {
+  try {
+    // Find the fee in local data
+    const feeIndex = appData.weeklyFees.findIndex(fee => fee._id === feeId);
+    if (feeIndex === -1) {
+      throw new Error('Weekly fee not found');
+    }
+    
+    // Create updated fee object
+    const updatedFee = {
+      ...appData.weeklyFees[feeIndex],
+      status: status
+    };
+    
+    // Save to server
+    const response = await fetch(`/api/weekly-fees/${feeId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updatedFee)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update weekly fee status');
+    }
+
+    const savedFee = await response.json();
+    
+    // Update local data
+    appData.weeklyFees[feeIndex] = savedFee;
+    
+    renderWeeklyFees();
+    return savedFee;
+  } catch (error) {
+    console.error('Error updating weekly fee status:', error);
+    showMessage('Failed to update weekly fee status', 'error');
+    throw error;
+  }
 }
 
 // Function to initialize the database with default data if empty

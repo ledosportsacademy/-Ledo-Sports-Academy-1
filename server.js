@@ -203,6 +203,39 @@ app.get('/api/members', async (req, res) => {
   }
 });
 
+// Create a new member
+app.post('/api/members', async (req, res) => {
+  const member = new Member(req.body);
+  try {
+    const newMember = await member.save();
+    res.status(201).json(newMember);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Update a member
+app.put('/api/members/:id', async (req, res) => {
+  try {
+    const member = await Member.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+    res.json(member);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Delete a member
+app.delete('/api/members/:id', async (req, res) => {
+  try {
+    const member = await Member.findByIdAndDelete(req.params.id);
+    if (!member) return res.status(404).json({ message: 'Member not found' });
+    res.json({ message: 'Member deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Get all donations
 app.get('/api/donations', async (req, res) => {
   try {
@@ -238,6 +271,39 @@ app.get('/api/weekly-fees', async (req, res) => {
   try {
     const weeklyFees = await WeeklyFee.find();
     res.json(weeklyFees);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Create a new weekly fee
+app.post('/api/weekly-fees', async (req, res) => {
+  const weeklyFee = new WeeklyFee(req.body);
+  try {
+    const newWeeklyFee = await weeklyFee.save();
+    res.status(201).json(newWeeklyFee);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Update a weekly fee
+app.put('/api/weekly-fees/:id', async (req, res) => {
+  try {
+    const weeklyFee = await WeeklyFee.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!weeklyFee) return res.status(404).json({ message: 'Weekly fee not found' });
+    res.json(weeklyFee);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Delete a weekly fee
+app.delete('/api/weekly-fees/:id', async (req, res) => {
+  try {
+    const weeklyFee = await WeeklyFee.findByIdAndDelete(req.params.id);
+    if (!weeklyFee) return res.status(404).json({ message: 'Weekly fee not found' });
+    res.json({ message: 'Weekly fee deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

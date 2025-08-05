@@ -1,0 +1,12 @@
+# Render deployment configuration
+services:
+  - type: web
+    name: ledo-sports-academy
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: PORT
+        value: 10000
